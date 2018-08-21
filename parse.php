@@ -21,13 +21,13 @@ while($line = fgetcsv($fh, 2048)) {
           if(!isset($result[$city][$ym])) {
             $result[$city][$ym] = array(0, 0,);
           }
-          $result[$city][$ym][0] = intval(preg_replace('/[^\d.]/', '', $line[$i]));
+          $result[$city][$ym][0] = getNum($line[$i]);
         }
       }
       for($i = 29; $i <= 56; $i++) {
         if(false === strpos($header[$i], '改制前')) {
           $city = mb_substr($header[$i], 0, 3, 'utf-8');
-          $result[$city][$ym][1] += intval(preg_replace('/[^\d.]/', '', $line[$i]));
+          $result[$city][$ym][1] += getNum($line[$i]);
         }
       }
     }
@@ -53,11 +53,11 @@ while($line = fgetcsv($fh, 2048)) {
         if(!isset($result[$city][$ym])) {
           $result[$city][$ym] = array(0, 0,);
         }
-        $result[$city][$ym][0] = intval(preg_replace('/[^\d.]/', '', $line[$i]));
+        $result[$city][$ym][0] = getNum($line[$i]);
       }
       for($i = 23; $i <= 44; $i++) {
         $city = mb_substr($header[$i], 0, 3, 'utf-8');
-        $result[$city][$ym][1] += intval(preg_replace('/[^\d.]/', '', $line[$i]));
+        $result[$city][$ym][1] += getNum($line[$i]);
       }
     }
   }
@@ -79,43 +79,75 @@ while($line = fgetcsv($fh, 2048)) {
         if(!isset($result[$city][$ym])) {
           $result[$city][$ym] = array(0, 0,);
         }
-        $result[$city][$ym][0] = intval(preg_replace('/[^\d.]/', '', $line[$i]));
+        $result[$city][$ym][0] = getNum($line[$i]);
       }
       for($i = 23; $i <= 44; $i++) {
         $city = mb_substr($header[$i], 0, 3, 'utf-8');
-        $result[$city][$ym][1] += intval(preg_replace('/[^\d.]/', '', $line[$i]));
+        $result[$city][$ym][1] += getNum($line[$i]);
       }
     }
   }
 }
 
-$header = false;
-$fh = fopen(__DIR__ . '/2018.csv', 'r');
+$fh = fopen(__DIR__ . '/1998-2002.csv', 'r');
+$loopCount = 0;
 while($line = fgetcsv($fh, 2048)) {
-  if(count($line) === 45) {
-    if(false === $header) {
-      $header = $line;
+  $parts = explode('年/ ', $line[0]);
+  if(count($parts) === 2) {
+    $ym = $parts[0] + 1911;
+    if($ym != 2002) {
+      continue;
+    }
+    $city = mb_substr($parts[1], 0, 3, 'utf-8');
+    if($city === '新北市') {
+      if($loopCount === 0) {
+        $loopCount = 1;
+      } else {
+        $loopCount = 0;
+      }
+    }
+    if(!isset($result[$city])) {
+      $result[$city] = array();
+    }
+    if(!isset($result[$city][$ym])) {
+      $result[$city][$ym] = array();
+    }
+    if($loopCount === 1) {
+      $result[$city][$ym][0] = getNum($line[1]);
     } else {
-      $ym = explode('年', $line[0]);
-      $ym[0] = intval($ym[0]) + 1911;
-      $ym[1] = str_pad(intval($ym[1]), 2, '0', STR_PAD_LEFT);
-      $ym = getYmKey($ym);
-      for($i = 1; $i <= 22; $i++) {
-        $city = mb_substr($header[$i], 0, 3, 'utf-8');
-        if(!isset($result[$city][$ym])) {
-          $result[$city][$ym] = array(0, 0,);
-        }
-        $result[$city][$ym][0] = intval(preg_replace('/[^\d.]/', '', $line[$i]));
-      }
-      for($i = 23; $i <= 44; $i++) {
-        $city = mb_substr($header[$i], 0, 3, 'utf-8');
-        $result[$city][$ym][1] += intval(preg_replace('/[^\d.]/', '', $line[$i]));
-      }
+      $result[$city][$ym][1] = getNum($line[1]);
     }
   }
 }
+
+// $header = false;
+// $fh = fopen(__DIR__ . '/2018.csv', 'r');
+// while($line = fgetcsv($fh, 2048)) {
+//   if(count($line) === 45) {
+//     if(false === $header) {
+//       $header = $line;
+//     } else {
+//       $ym = explode('年', $line[0]);
+//       $ym[0] = intval($ym[0]) + 1911;
+//       $ym[1] = str_pad(intval($ym[1]), 2, '0', STR_PAD_LEFT);
+//       $ym = getYmKey($ym);
+//       for($i = 1; $i <= 22; $i++) {
+//         $city = mb_substr($header[$i], 0, 3, 'utf-8');
+//         if(!isset($result[$city][$ym])) {
+//           $result[$city][$ym] = array(0, 0,);
+//         }
+//         $result[$city][$ym][0] = getNum($line[$i]);
+//       }
+//       for($i = 23; $i <= 44; $i++) {
+//         $city = mb_substr($header[$i], 0, 3, 'utf-8');
+//         $result[$city][$ym][1] += getNum($line[$i]);
+//       }
+//     }
+//   }
+// }
 
 function getYmKey($ym) {
+  return $ym[0];
   switch($ym[1]) {
     case '01':
     case '02':
@@ -128,6 +160,10 @@ function getYmKey($ym) {
     default:
     return $ym[0] . '12';
   }
+}
+
+function getNum($n) {
+  return intval(preg_replace('/[^\d.]/', '', $n));
 }
 
 $chartData1 = $chartData2 = $chartData3 = array(
@@ -147,12 +183,13 @@ foreach($result AS $city => $data) {
     'data' => array(),
   );
   foreach($data AS $k => $v) {
-    if(empty($v[0])) {
-      continue;
-    }
     $dataset1['data'][] = $v[0];
     $dataset2['data'][] = $v[1];
-    $dataset3['data'][] = round($v[1] / $v[0]);
+    if(empty($v[0])) {
+      $dataset3['data'][] = 0;
+    } else {
+      $dataset3['data'][] = round($v[1] / $v[0]);
+    }
   }
   $chartData1['datasets'][] = $dataset1;
   $chartData2['datasets'][] = $dataset2;
