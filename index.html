@@ -84,6 +84,9 @@
  });
  $.get('data2.json', {}, function(d){
    for (k in d['datasets']) {
+     if(!colorPool[d['datasets'][k].label]) {
+       colorPool[d['datasets'][k].label] = dynamicColors();
+     }
      var color = colorPool[d['datasets'][k].label];
      d['datasets'][k].backgroundColor = color;
      d['datasets'][k].borderColor = color;
@@ -130,6 +133,9 @@
  });
  $.get('data3.json', {}, function(d){
    for (k in d['datasets']) {
+     if(!colorPool[d['datasets'][k].label]) {
+       colorPool[d['datasets'][k].label] = dynamicColors();
+     }
      var color = colorPool[d['datasets'][k].label];
      d['datasets'][k].backgroundColor = color;
      d['datasets'][k].borderColor = color;
