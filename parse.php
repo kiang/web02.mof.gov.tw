@@ -95,9 +95,6 @@ while($line = fgetcsv($fh, 2048)) {
   $parts = explode('年/ ', $line[0]);
   if(count($parts) === 2) {
     $ym = $parts[0] + 1911;
-    if($ym != 2002) {
-      continue;
-    }
     $city = mb_substr($parts[1], 0, 3, 'utf-8');
     if($city === '新北市') {
       if($loopCount === 0) {
